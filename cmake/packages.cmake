@@ -27,8 +27,9 @@ find_package(tf2_eigen REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(livox_ros_driver REQUIRED)
 
-# message generation
+# message generation (creates a utility target named ${PROJECT_NAME})
 rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/Pose6D.msg"
 )
