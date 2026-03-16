@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # we only need livox message definition here
-project(livox_ros_driver)
+project(livox_ros_driver2)
 
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)

@@ -10,7 +10,7 @@
 #include <rclcpp/serialization.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/msg/imu.hpp>
-#include <livox_ros_driver/msg/custom_msg.hpp>
+#include <livox_ros_driver2/msg/custom_msg.hpp>
 
 #include "laser_mapping.h"
 #include "utils.h"
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     reader.open(FLAGS_bag_file);
 
     // serializers for message types
-    rclcpp::Serialization<livox_ros_driver::msg::CustomMsg> livox_serializer;
+    rclcpp::Serialization<livox_ros_driver2::msg::CustomMsg> livox_serializer;
     rclcpp::Serialization<sensor_msgs::msg::PointCloud2> pcl_serializer;
     rclcpp::Serialization<sensor_msgs::msg::Imu> imu_serializer;
 
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
             // Try to deserialize as CustomMsg first for AVIA lidar type
             if (laser_mapping->GetPreprocess() && laser_mapping->GetPreprocess()->GetLidarType() == faster_lio::LidarType::AVIA) {
                 try {
-                    auto livox_msg = std::make_shared<livox_ros_driver::msg::CustomMsg>();
+                    auto livox_msg = std::make_shared<livox_ros_driver2::msg::CustomMsg>();
                     livox_serializer.deserialize_message(&serialized_msg, livox_msg.get());
                     faster_lio::Timer::Evaluate(
                         [&laser_mapping, &livox_msg]() {

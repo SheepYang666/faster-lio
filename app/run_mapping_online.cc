@@ -16,13 +16,21 @@ void SigHandle(int sig) {
 }
 
 int main(int argc, char **argv) {
-    // rclcpp::init must come first to strip --ros-args before gflags sees them
-    rclcpp::init(argc, argv);
+    // rclcpp::init and remove ROS arguments from argv so gflags won't see them
+    auto non_ros_args = rclcpp::init_and_remove_ros_arguments(argc, argv);
+
+    // Build a new argc/argv without ROS args for gflags
+    std::vector<char *> new_argv;
+    for (auto &arg : non_ros_args) {
+        new_argv.push_back(const_cast<char *>(arg.c_str()));
+    }
+    int new_argc = static_cast<int>(new_argv.size());
 
     FLAGS_stderrthreshold = google::INFO;
     FLAGS_colorlogtostderr = true;
-    google::InitGoogleLogging(argv[0]);
-    google::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(new_argv[0]);
+    char **new_argv_ptr = new_argv.data();
+    google::ParseCommandLineFlags(&new_argc, &new_argv_ptr, true);
 
     auto laser_mapping = std::make_shared<faster_lio::LaserMapping>();
     laser_mapping->InitROS();

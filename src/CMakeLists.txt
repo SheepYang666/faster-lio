@@ -19,7 +19,7 @@ ament_target_dependencies(${LIB_NAME}
         tf2_eigen
         pcl_conversions
         rosbag2_cpp
-        livox_ros_driver
+        livox_ros_driver2
 )
 
 # link self-generated Pose6D message typesupport

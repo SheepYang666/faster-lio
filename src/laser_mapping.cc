@@ -156,7 +156,7 @@ bool LaserMapping::LoadParams() {
     LOG(INFO) << "lidar_type " << lidar_type;
     if (lidar_type == 1) {
         preprocess_->SetLidarType(LidarType::AVIA);
-        LOG(INFO) << "Using AVIA Lidar (livox_ros_driver::msg::CustomMsg)";
+        LOG(INFO) << "Using AVIA Lidar (livox_ros_driver2::msg::CustomMsg)";
     } else if (lidar_type == 2) {
         preprocess_->SetLidarType(LidarType::VELO32);
         LOG(INFO) << "Using Velodyne 32 Lidar";
@@ -259,7 +259,7 @@ bool LaserMapping::LoadParamsFromYAML(const std::string &yaml_file) {
     LOG(INFO) << "lidar_type " << lidar_type;
     if (lidar_type == 1) {
         preprocess_->SetLidarType(LidarType::AVIA);
-        LOG(INFO) << "Using AVIA Lidar (livox_ros_driver::msg::CustomMsg)";
+        LOG(INFO) << "Using AVIA Lidar (livox_ros_driver2::msg::CustomMsg)";
     } else if (lidar_type == 2) {
         preprocess_->SetLidarType(LidarType::VELO32);
         LOG(INFO) << "Using Velodyne 32 Lidar";
@@ -317,9 +317,9 @@ void LaserMapping::SubAndPubToROS() {
     this->get_parameter("common.imu_topic", imu_topic);
 
     if (preprocess_->GetLidarType() == LidarType::AVIA) {
-        sub_pcl_livox_ = this->create_subscription<livox_ros_driver::msg::CustomMsg>(
+        sub_pcl_livox_ = this->create_subscription<livox_ros_driver2::msg::CustomMsg>(
             lidar_topic, rclcpp::SensorDataQoS(),
-            [this](const livox_ros_driver::msg::CustomMsg::SharedPtr msg) { LivoxPCLCallBack(msg); });
+            [this](const livox_ros_driver2::msg::CustomMsg::SharedPtr msg) { LivoxPCLCallBack(msg); });
     } else {
         sub_pcl_std_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
             lidar_topic, rclcpp::SensorDataQoS(),
@@ -458,7 +458,7 @@ void LaserMapping::StandardPCLCallBack(const sensor_msgs::msg::PointCloud2::Shar
     mtx_buffer_.unlock();
 }
 
-void LaserMapping::LivoxPCLCallBack(const livox_ros_driver::msg::CustomMsg::SharedPtr msg) {
+void LaserMapping::LivoxPCLCallBack(const livox_ros_driver2::msg::CustomMsg::SharedPtr msg) {
     mtx_buffer_.lock();
     Timer::Evaluate(
         [&, this]() {

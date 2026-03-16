@@ -11,7 +11,7 @@ void PointCloudPreprocess::Set(LidarType lid_type, double bld, int pfilt_num) {
     point_filter_num_ = pfilt_num;
 }
 
-void PointCloudPreprocess::Process(const livox_ros_driver::msg::CustomMsg::SharedPtr &msg, PointCloudType::Ptr &pcl_out) {
+void PointCloudPreprocess::Process(const livox_ros_driver2::msg::CustomMsg::SharedPtr &msg, PointCloudType::Ptr &pcl_out) {
     AviaHandler(msg);
     *pcl_out = cloud_out_;
 }
@@ -42,7 +42,7 @@ void PointCloudPreprocess::Process(const sensor_msgs::msg::PointCloud2::SharedPt
     *pcl_out = cloud_out_;
 }
 
-void PointCloudPreprocess::AviaHandler(const livox_ros_driver::msg::CustomMsg::SharedPtr &msg) {
+void PointCloudPreprocess::AviaHandler(const livox_ros_driver2::msg::CustomMsg::SharedPtr &msg) {
     cloud_out_.clear();
     cloud_full_.clear();
     int plsize = msg->point_num;
