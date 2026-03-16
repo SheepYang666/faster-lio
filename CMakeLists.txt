@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(faster_lio)
 
+find_package(ament_cmake REQUIRED)
+
 set(DEFAULT_BUILD_TYPE "Release")
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,12 +14,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS}")
 
 add_definitions(-DROOT_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
-add_subdirectory(thirdparty/livox_ros_driver)
 
 include(cmake/packages.cmake)
-
-#definitions
-add_definitions(-DROOT_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/\")
 
 # options
 option(WITH_IVOX_NODE_TYPE_PHC "Use PHC instead of default ivox node" OFF)
@@ -31,3 +29,11 @@ endif()
 
 add_subdirectory(src)
 add_subdirectory(app)
+
+# install config and launch files
+install(DIRECTORY config/ DESTINATION share/${PROJECT_NAME}/config)
+install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME}/launch
+    PATTERN "*.launch" EXCLUDE
+)
+
+ament_package()
