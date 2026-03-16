@@ -32,9 +32,13 @@
 *.app
 
 build/
+install/
+log/
 *.pcd
 
 #Mac OS
 .DS_Store
 
 *.vscode
+*.claude
+CLAUDE.md

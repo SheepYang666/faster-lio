@@ -32,3 +32,9 @@ target_link_libraries(${LIB_NAME}
         glog
         yaml-cpp
         )
+
+install(TARGETS ${LIB_NAME}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+        )
