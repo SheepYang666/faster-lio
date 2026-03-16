@@ -316,18 +316,23 @@ void LaserMapping::SubAndPubToROS() {
     this->get_parameter("common.lid_topic", lidar_topic);
     this->get_parameter("common.imu_topic", imu_topic);
 
+    // QoS: use large queue depth to avoid dropping IMU/LiDAR messages
+    rclcpp::QoS sensor_qos(rclcpp::KeepLast(2000));
+    sensor_qos.reliability(rclcpp::ReliabilityPolicy::BestEffort);
+    sensor_qos.durability(rclcpp::DurabilityPolicy::Volatile);
+
     if (preprocess_->GetLidarType() == LidarType::AVIA) {
         sub_pcl_livox_ = this->create_subscription<livox_ros_driver2::msg::CustomMsg>(
-            lidar_topic, rclcpp::SensorDataQoS(),
+            lidar_topic, sensor_qos,
             [this](const livox_ros_driver2::msg::CustomMsg::SharedPtr msg) { LivoxPCLCallBack(msg); });
     } else {
         sub_pcl_std_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-            lidar_topic, rclcpp::SensorDataQoS(),
+            lidar_topic, sensor_qos,
             [this](const sensor_msgs::msg::PointCloud2::SharedPtr msg) { StandardPCLCallBack(msg); });
     }
 
     sub_imu_ = this->create_subscription<sensor_msgs::msg::Imu>(
-        imu_topic, rclcpp::SensorDataQoS(),
+        imu_topic, sensor_qos,
         [this](const sensor_msgs::msg::Imu::SharedPtr msg) { IMUCallBack(msg); });
 
     // ROS publisher init
