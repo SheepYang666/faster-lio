@@ -3,6 +3,7 @@
 #include <yaml-cpp/yaml.h>
 #include <execution>
 #include <fstream>
+#include <iomanip>
 
 #include "laser_mapping.h"
 #include "utils.h"
@@ -215,6 +216,10 @@ bool LaserMapping::LoadParamsFromYAML(const std::string &yaml_file) {
     common::M3D lidar_R_wrt_IMU;
 
     auto yaml = YAML::LoadFile(yaml_file);
+    // Support ROS2-format YAML with laserMapping.ros__parameters wrapper
+    if (yaml["laserMapping"] && yaml["laserMapping"]["ros__parameters"]) {
+        yaml = yaml["laserMapping"]["ros__parameters"];
+    }
     try {
         path_pub_en_ = yaml["publish"]["path_publish_en"].as<bool>();
         scan_pub_en_ = yaml["publish"]["scan_publish_en"].as<bool>();
@@ -335,15 +340,19 @@ void LaserMapping::SubAndPubToROS() {
         imu_topic, sensor_qos,
         [this](const sensor_msgs::msg::Imu::SharedPtr msg) { IMUCallBack(msg); });
 
-    // ROS publisher init
+    // ROS publisher init -- Reliable for rviz2 compatibility, Volatile to avoid history buildup
+    rclcpp::QoS pub_qos(rclcpp::KeepLast(10));
+    pub_qos.reliability(rclcpp::ReliabilityPolicy::Reliable);
+    pub_qos.durability(rclcpp::DurabilityPolicy::Volatile);
+
     path_.header.stamp = this->now();
     path_.header.frame_id = tf_world_frame_;
 
-    pub_laser_cloud_world_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered", 100);
-    pub_laser_cloud_body_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered_body", 100);
-    pub_laser_cloud_effect_world_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered_effect_world", 100);
-    pub_odom_aft_mapped_ = this->create_publisher<nav_msgs::msg::Odometry>("/Odometry", 100);
-    pub_path_ = this->create_publisher<nav_msgs::msg::Path>("/path", 100);
+    pub_laser_cloud_world_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered", pub_qos);
+    pub_laser_cloud_body_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered_body", pub_qos);
+    pub_laser_cloud_effect_world_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered_effect_world", pub_qos);
+    pub_odom_aft_mapped_ = this->create_publisher<nav_msgs::msg::Odometry>("/Odometry", pub_qos);
+    pub_path_ = this->create_publisher<nav_msgs::msg::Path>("/path", pub_qos);
 
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 }
@@ -475,10 +484,15 @@ void LaserMapping::LivoxPCLCallBack(const livox_ros_driver2::msg::CustomMsg::Sha
 
             last_timestamp_lidar_ = common::toSec(msg->header.stamp);
 
-            if (!time_sync_en_ && abs(last_timestamp_imu_ - last_timestamp_lidar_) > 10.0 && !imu_buffer_.empty() &&
-                !lidar_buffer_.empty()) {
-                LOG(INFO) << "IMU and LiDAR not Synced, IMU time: " << last_timestamp_imu_
-                          << ", lidar header time: " << last_timestamp_lidar_;
+            // Only check sync after both sensors have sent at least one message
+            if (!time_stamp_init_ && last_timestamp_imu_ > 0 && last_timestamp_lidar_ > 0) {
+                time_stamp_init_ = true;
+            }
+
+            if (!time_sync_en_ && time_stamp_init_ && abs(last_timestamp_imu_ - last_timestamp_lidar_) > 10.0 &&
+                !imu_buffer_.empty() && !lidar_buffer_.empty()) {
+                LOG(INFO) << "IMU and LiDAR not Synced, IMU time: " << std::fixed << std::setprecision(6)
+                          << last_timestamp_imu_ << ", lidar header time: " << last_timestamp_lidar_;
             }
 
             if (time_sync_en_ && !timediff_set_flg_ && abs(last_timestamp_lidar_ - last_timestamp_imu_) > 1 &&

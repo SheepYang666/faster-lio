@@ -135,6 +135,7 @@ class LaserMapping : public rclcpp::Node {
 
     /// options
     bool time_sync_en_ = false;
+    bool time_stamp_init_ = false;
     double timediff_lidar_wrt_imu_ = 0.0;
     double last_timestamp_lidar_ = 0;
     double lidar_end_time_ = 0;
